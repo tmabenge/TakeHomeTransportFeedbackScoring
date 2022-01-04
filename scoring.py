@@ -48,34 +48,33 @@ class SentimentScores:
     def __init__(self, file: File):
         self.File_co = file
 
-    def load_files_into_memory(self) -> object:
+    def load_files_into_memory(self,ref_data_file_name, scores_file_name, ref_data_del, scores_del) -> object:
         """
-
+        Loads files into memory
 
         :rtype: object
         :return list of dataframes:
         """
 
-        reference_data = 'preprocessing/reference-data.txt'
-        scores = 'preprocessing/scores.txt'
-
-        if not os.path.isfile(reference_data) \
-                and not os.path.isfile(scores):
+        if not os.path.isfile(ref_data_file_name) \
+                and not os.path.isfile(scores_file_name):
             return []
 
-        ref_data_df = self.File_co.read_file_data(reference_data, ';')
+        ref_data_df = self.File_co.read_file_data(ref_data_file_name, ref_data_del)
         ref_data_df = self.clean_ref_data(ref_data_df)
-        scores_df = self.File_co.read_file_data(scores, '\s+')
+        scores_df = self.File_co.read_file_data(scores_file_name, scores_del)
 
         return [ref_data_df, scores_df]
 
     def calculate_average_score(self, data_frame) -> object:
         """
-        calculates average scores for each route,
+        Calculates average scores for each route,
         per day of the week.
 
         :param data_frame:
         """
+        data_frame = self.omit_entries_by_score(0, 10, 2, data_frame)
+
         res = data_frame \
             .groupby([1, 0]) \
             .agg({2: ['mean']}).reset_index()
@@ -84,6 +83,12 @@ class SentimentScores:
         res = res.sort_values([1, 2], ascending=False)
 
         return res
+
+    def omit_entries_by_score(self, min_score, max_score, col, data_frame):
+        data_frame = data_frame.drop(data_frame[data_frame[col] == min_score].index)
+        data_frame = data_frame.drop(data_frame[data_frame[col] == max_score].index)
+        return data_frame
+
 
     def clean_ref_data(self, data_frame):
         """

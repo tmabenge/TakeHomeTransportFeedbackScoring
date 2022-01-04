@@ -5,7 +5,13 @@ if __name__ == '__main__':
     file = scoring.File()
     sentiment_scores = scoring.SentimentScores(file)
 
-    df_files = sentiment_scores.load_files_into_memory()
+    df_files = sentiment_scores.load_files_into_memory(
+        'preprocessing/reference-data.txt',
+        'preprocessing/scores.txt',
+        ';',
+        '\s+'
+    )
+
     df_avg_scores = sentiment_scores.calculate_average_score(df_files[1])
 
     df_final_avg_scores_with_r_name_day = \
